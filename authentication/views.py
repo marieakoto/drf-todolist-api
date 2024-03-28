@@ -1,5 +1,5 @@
-from django.shortcuts import render
-from rest_framework.generics import GenericAPIView,ListAPIView
+
+from rest_framework.generics import GenericAPIView
 from authentication.serializers import RegisterSerializer,LoginSerializer,UserSerializer
 from rest_framework import response, status,permissions
 from django.contrib.auth import authenticate
@@ -10,11 +10,11 @@ from authentication.models import User
 
 # Create your views here.
 
-class AuthUserAPIView(ListAPIView,GenericAPIView):
+class AuthUserAPIView(GenericAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes= [JWTAuthentication,]
     serializer_class = UserSerializer
-    queryset = User.objects.all()
+ 
 
     def get(self, request, ):
         user = request.user
