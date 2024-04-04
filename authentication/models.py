@@ -54,9 +54,6 @@ class MyUserManager(UserManager):         ##This manager is going to provide met
     
 
 
-
-
-
 class User(AbstractBaseUser, PermissionsMixin,TrackingModel):               #An abstract base class implementing a fully featured User model with admin-compliant permissions.
     
     username_validator = UnicodeUsernameValidator()         #Ennsures that usernames adhere to certain criteria
