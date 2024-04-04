@@ -37,20 +37,27 @@ class LoginAPIView(APIView):
     def post(self, request):
         email = request.data.get('email', None)
         password = request.data.get('password', None)
+        
         user = authenticate(username=email, password=password)
 
-        serializer = self.serializer_class(user)
-        response_data = serializer.data
 
-        refresh = RefreshToken.for_user(user)
-        token = {
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-            }
+        if user:
+            serializer = self.serializer_class(user)
+            response_data = serializer.data
+
+            refresh = RefreshToken.for_user(user)
+            token = {
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                }
+
+            response_data['token'] = token
+
+            return Response(response_data, status=status.HTTP_200_OK)
         
-        response_data['token'] = token
+        else:
+             return response.Response({'message': "Invalid credentials, try again"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        return Response(response_data, status=status.HTTP_200_OK)
 
         # return JsonResponse(
         #         {"status": "success", "data": {"token": token, "user": request.data.get('username')}},
