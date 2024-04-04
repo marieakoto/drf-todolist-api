@@ -1,5 +1,5 @@
 
-from rest_framework.generics import GenericAPIView
+from rest_framework.views import APIView
 from authentication.serializers import RegisterSerializer,LoginSerializer,UserSerializer
 from rest_framework import response, status,permissions
 from django.contrib.auth import authenticate
@@ -8,18 +8,17 @@ from rest_framework.response import Response
 
 
 
-class AuthUserAPIView(GenericAPIView):
+class AuthUserAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = UserSerializer
- 
 
     def get(self, request, ):
         user = request.user
-        serializer = UserSerializer(user)
+        serializer = self.serializer_class(user)
         return response.Response({"user" : serializer.data})
 
 
-class RegisterAPIView(GenericAPIView):
+class RegisterAPIView(APIView):
     serializer_class = RegisterSerializer
 
     def post(self,request):
@@ -32,7 +31,7 @@ class RegisterAPIView(GenericAPIView):
         return response.Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
     
 
-class LoginAPIView(GenericAPIView):
+class LoginAPIView(APIView):
     serializer_class = LoginSerializer
     
     def post(self, request):
