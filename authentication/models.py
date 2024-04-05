@@ -9,48 +9,49 @@ from django.apps import apps
 import jwt
 from django.conf import settings
 from datetime import datetime,timedelta
+from authentication.exceptions import validate_email, validate_superuser_fields,validate_username,validate_user_fields
 
 
 
 class MyUserManager(UserManager):         ##This manager is going to provide methods for creating regular users and superusers.Allows to customize how queries are performed on the model.
 
-    def _create_user(self, username, email, password, **extra_fields):        ##Creates and saves the instance of a user with provided arguments
-
-        if not username:                                                        ##To ensure that username and email are set if not raises a  Value error.
-            raise ValueError("The given username must be set")
+    def _create_user(self, username, email, password, **extra_fields):        
+        validate_username(username)
+        validate_email(email)
         
-        if not email:
-            raise ValueError("The given email must be set")
+        email = self.normalize_email(email)                         
         
-        email = self.normalize_email(email)                          #This normalises the email to ensure consistency(converting uppercase to lowercase)
-        
-        GlobalUserModel = apps.get_model(                                       # Used to handle model changes in migrations
+        GlobalUserModel = apps.get_model(                                       
             self.model._meta.app_label, self.model._meta.object_name
         )
 
-        username = GlobalUserModel.normalize_username(username)              #Also normalises the username
+        username = GlobalUserModel.normalize_username(username)              
 
         user = self.model(username=username, email=email, **extra_fields)
 
-        user.password = make_password(password)                 #The password is hashed using the makepassword function for security
-        user.save(using=self._db)                                #The user instance is saved into the database
+        user.password = make_password(password)                 
+        user.save(using=self._db)                               
         return user
 
-    def create_user(self, username, email, password=None, **extra_fields):        ## A convenient method for creating regular users specifically
-        extra_fields.setdefault("is_staff", False)                                  #Sets the is staff to is false if not specified explicitly.
-        extra_fields.setdefault("is_superuser", False)                               #Sets the is superuser to is false if not specified explicitly.
-        return self._create_user(username, email, password, **extra_fields)          #Calls the create user to actually create the user
+    def create_user(self, username, email, password=None, **extra_fields):        
+        extra_fields.setdefault("is_staff", False)                                 
+        extra_fields.setdefault("is_superuser", False)                               
+       
+        validate_username(username)
+        validate_email(email)
+        validate_user_fields(extra_fields)
 
-    def create_superuser(self, username, email, password=None, **extra_fields):         ##A method for creating a superuser specifically.
-        extra_fields.setdefault("is_staff", True)                                       ##Sets the is staff to true by default for the superuser
-        extra_fields.setdefault("is_superuser", True)                                    ##Sets the is superuser to true for the superuser
+        return self._create_user(username, email, password, **extra_fields)         
 
-        if extra_fields.get("is_staff") is not True:                                    ##Checks if isstaff and is superuser are true and raises and error if not.
-            raise ValueError("Superuser must have is_staff=True.")
-        if extra_fields.get("is_superuser") is not True:
-            raise ValueError("Superuser must have is_superuser=True.")
+    def create_superuser(self, username, email, password=None, **extra_fields):         
+        extra_fields.setdefault("is_staff", True)                                     
+        extra_fields.setdefault("is_superuser", True) 
 
-        return self._create_user(username, email, password, **extra_fields)              #Finally calls on the create user method if it passes all the checks
+        validate_username(username)
+        validate_email(email)
+        validate_superuser_fields(extra_fields)
+
+        return self._create_user(username, email, password, **extra_fields)              
     
 
 

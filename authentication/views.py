@@ -1,5 +1,5 @@
 
-from rest_framework.generics import GenericAPIView
+from rest_framework.views import APIView
 from authentication.serializers import RegisterSerializer,LoginSerializer,UserSerializer
 from rest_framework import response, status,permissions
 from django.contrib.auth import authenticate
@@ -8,18 +8,17 @@ from rest_framework.response import Response
 
 
 
-class AuthUserAPIView(GenericAPIView):
+class AuthUserAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = UserSerializer
- 
 
     def get(self, request, ):
         user = request.user
-        serializer = UserSerializer(user)
+        serializer = self.serializer_class(user)
         return response.Response({"user" : serializer.data})
 
 
-class RegisterAPIView(GenericAPIView):
+class RegisterAPIView(APIView):
     serializer_class = RegisterSerializer
 
     def post(self,request):
@@ -32,26 +31,33 @@ class RegisterAPIView(GenericAPIView):
         return response.Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
     
 
-class LoginAPIView(GenericAPIView):
+class LoginAPIView(APIView):
     serializer_class = LoginSerializer
     
     def post(self, request):
         email = request.data.get('email', None)
         password = request.data.get('password', None)
+        
         user = authenticate(username=email, password=password)
 
-        serializer = self.serializer_class(user)
-        response_data = serializer.data
 
-        refresh = RefreshToken.for_user(user)
-        token = {
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-            }
+        if user:
+            serializer = self.serializer_class(user)
+            response_data = serializer.data
+
+            refresh = RefreshToken.for_user(user)
+            token = {
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                }
+
+            response_data['token'] = token
+
+            return Response(response_data, status=status.HTTP_200_OK)
         
-        response_data['token'] = token
+        else:
+             return response.Response({'message': "Invalid credentials, try again"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        return Response(response_data, status=status.HTTP_200_OK)
 
         # return JsonResponse(
         #         {"status": "success", "data": {"token": token, "user": request.data.get('username')}},

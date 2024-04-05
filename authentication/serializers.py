@@ -13,7 +13,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
 
-    password = serializers.CharField(max_length = 128, min_length = 6, write_only = True)      #Defines the passwor to only be write only, so it should not return it to the server
+    password = serializers.CharField(max_length = 128, min_length = 6, write_only = True, style={'input_type': 'password'})      #Defines the passwor to only be write only, so it should not return it to the server
 
     class Meta:
         model = User
@@ -24,7 +24,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(max_length = 128, min_length = 6, write_only = True)      #Defines the password to only be write only, so it should not return it to the server
+    password = serializers.CharField(max_length = 128, min_length = 6, write_only = True,style={'input_type': 'password'})      #Defines the password to only be write only, so it should not return it to the server
 
     class Meta:
         model = User
