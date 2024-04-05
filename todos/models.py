@@ -1,7 +1,6 @@
 from django.db import models
 from helpers.models import TrackingModel
 from authentication.models import User
-# Create your models here.
 
 
 class Todo(TrackingModel):
